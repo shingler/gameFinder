@@ -5,7 +5,8 @@ from config import Config
 class Db:
     def __init__(self):
         config = Config()
-        self.con = pymysql.connect(config.db["host"], config.db["user"], config.db["pwd"], config.db["db_name"], cursorclass=pymysql.cursors.DictCursor)
+        self.con = pymysql.connect(config.db["host"], config.db["user"], config.db["pwd"], config.db["db_name"],
+                                   cursorclass=pymysql.cursors.DictCursor)
 
     def close(self):
         self.con.close()

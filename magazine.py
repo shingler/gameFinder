@@ -13,10 +13,12 @@ def get_famitsu(page=1):
     fa = Famitsu()
     retry = 0
     url = "%s/schedule/recent/all/%d/" % (fa.host, page)
+
     while True:
         try:
             data = Famitsu.http(url)
-        except:
+        except Exception as ex:
+            print(ex)
             if retry < 3:
                 retry += 1
                 print("访问超时%d" % retry)
@@ -92,7 +94,8 @@ def get_metacritic(page=0):
     while True:
         try:
             data = metacritic.http(url)
-        except:
+        except Exception as ex:
+            print(ex)
             print("访问超时%d" % retry)
             if retry < 3:
                 retry += 1
@@ -118,7 +121,7 @@ def main():
     # print(args.magazine)
 
     if str.lower(args.name) in allowed_magazine:
-        eval("get_"+args.name)(args.page)
+        eval("get_"+args.name)(int(args.page))
     else:
         print("运行参数错误，-n的值只能是[%s]" % ','.join(allowed_magazine))
 

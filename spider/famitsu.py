@@ -25,7 +25,12 @@ class Famitsu(Spider):
             console = msg.find("span", class_="icon-console").text
             if str.lower(console) in self.platform:
                 self.info["subject"] = msg.find("span", class_="card-schedule__title-inline").text.replace("'", "\\\'")
-                self.info["url"] = self.host + msg.attrs["href"]
+                url = self.host + msg.attrs["href"]
+                # 如果已入库就不重复获取详情了
+                if bool(self.ifExists(url)):
+                    continue
+
+                self.info["url"] = url
                 # 进入详情页
                 detail = Spider.http(self.info["url"])
                 if detail is not None:

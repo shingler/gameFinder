@@ -1,6 +1,7 @@
 # 媒体评分内容抓取父类
 import time
 import requests
+import urllib3
 
 from db import Db
 
@@ -28,8 +29,17 @@ class Spider:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/79.0.3945.117 Safari/537.36',
         }
-        resp = requests.get(url, headers=header, timeout=60)
-        print(url, resp.status_code)
+        print(url)
+        urllib3.disable_warnings()
+        urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
+        try:
+            urllib3.contrib.pyopenssl.DEFAULT_SSL_CIPHER_LIST += 'HIGH:!DH:!aNULL'
+        except AttributeError:
+            # no pyopenssl support used / needed / available
+            pass
+
+        resp = requests.get(url, headers=header, timeout=60, verify=False)
+        print(resp.status_code)
         if resp.status_code == requests.codes.ok:
             return resp
         elif resp.status_code == 404:

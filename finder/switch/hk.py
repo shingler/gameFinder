@@ -32,7 +32,7 @@ class SwitchHk(Store):
         url = "https://www.nintendo.com.hk/data/json/switch_software.json?418544271551"
         # url = url.format(size, page)
         # print(url)
-        resp = requests.get(url, headers=self.headers)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         data_list = json.loads(resp.text, encoding="UTF-8")
 
         for data in data_list:
@@ -87,7 +87,8 @@ class SwitchHk(Store):
             # break
 
     def getDetail(self, price_obj, url):
-        resp = requests.get(url, headers=self.headers)
+        print(url)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         soup = BeautifulSoup(resp.text, "html.parser")
         # 游戏介绍
         desc = soup.find("div", class_="product attribute description")
@@ -113,9 +114,12 @@ class SwitchHk(Store):
 
         # 获取截图 港服图片是写在script里，然后懒加载实现的
         script_data = soup.find_all("script", type="text/x-magento-init")
+
         price_obj.thumb = []
         for li in script_data:
-            li = json.loads(li.text)
+            # print(li, li.string)
+
+            li = json.loads(li.string)
             if "[data-gallery-role=gallery-placeholder]" in li:
                 gallery = li["[data-gallery-role=gallery-placeholder]"]
                 if "mage/gallery/gallery" in gallery:

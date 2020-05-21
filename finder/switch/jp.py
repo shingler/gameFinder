@@ -27,7 +27,7 @@ class SwitchJp(Store):
         url = "https://search.nintendo.jp/nintendo_soft/search.json?opt_sshow=1&fq=ssitu_s:onsale%20OR%20ssitu_s:preorder&limit={0}&page={1}&c=14316436013423625&opt_osale=1&opt_hard=1_HAC&sort=sodate%20desc,score"
         url = url.format(size, page)
         # print(url)
-        resp = requests.get(url, headers=self.headers)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         data_list = json.loads(resp.text, encoding="UTF-8")
 
         for data in data_list["result"]["items"]:

@@ -1,9 +1,16 @@
 # 写数据库的配置信息
+from configparser import ConfigParser
+
+
 class Config:
     db = dict()
 
     def __init__(self):
-        self.db["host"] = "localhost"
-        self.db["user"] = "root"
-        self.db["pwd"] = "123456"
-        self.db["db_name"] = "game_finder"
+        cfg = ConfigParser()
+        cfg.read("config.ini")
+        env = cfg.get("default", "env.default")
+
+        self.db["host"] = cfg.get(env, "database.host")
+        self.db["user"] = cfg.get(env, "database.username")
+        self.db["pwd"] = cfg.get(env, "database.password")
+        self.db["db_name"] = cfg.get(env, "database.db_name")

@@ -46,7 +46,7 @@ class SwitchUs(Store):
         data = json.dumps(list)
         print(data)
 
-        resp = requests.post(url, data=data, headers=self.headers)
+        resp = requests.post(url, data=data, headers=self.headers, allow_redirects=False)
         data_list = json.loads(resp.text, encoding="UTF-8")
         print(data_list)
 
@@ -106,7 +106,7 @@ class SwitchUs(Store):
 
     # 进入详情页，获取更新信息
     def getDetail(self, price_obj, url):
-        resp = requests.get(url, headers=self.headers)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         soup = BeautifulSoup(resp.text, "html.parser")
         # 获取截图
         thumb_li = soup.find_all("product-gallery-item")

@@ -1,4 +1,5 @@
 # 从ps港服获取游戏数据并入库
+# Usage: python3 get_ps_data.py -a hk -p 1
 import argparse
 
 from finder import ps4
@@ -9,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description="抓取PS4游戏价格信息，可选的区域有[%s]" % ','.join(allowed_area))
     parser.add_argument('-a', '--area', default="hk", required=True, help="商店销售区域代码")
     parser.add_argument('-p', '--page', default=1, help="开始页数")
+    # parser.add_argument('-e', '--env', default="develop", help="运行环境（develop，production）")
     args = parser.parse_args()
     area = args.area
     start_page = int(args.page)

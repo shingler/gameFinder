@@ -119,7 +119,7 @@ class Price(Db):
                 sql_update += "plusExpire=%d, " % self.plusExpire
             if float(exist["historyPrice"]) > self.latestPrice:
                 sql_update += "historyPrice=%f, " % self.latestPrice
-                sql_update += "historyDate=%d, " % time.time()
+                sql_update += "hisDate=%d, " % time.time()
             if exist["publishDateStr"] != self.publishDateStr:
                 sql_update += "publishDateStr=%s, " % self.publishDateStr
                 sql_update += "publishDate=%d, " % int(self.publishDate)

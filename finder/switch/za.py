@@ -36,7 +36,7 @@ class SwitchZa(Store):
         offset = (page-1)*size
         url = self.search_url.format(offset, size)
 
-        resp = requests.get(url, headers=self.headers)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         # 南非服从欧服拿东西，格式是jsonp
         resp_text = resp.text[resp.text.find("(")+1:resp.text.rfind(")")]
         json_data = json.loads(resp_text, encoding="UTF-8")
@@ -98,7 +98,7 @@ class SwitchZa(Store):
     # 获取折扣价
     def getSalePrice(self, price_obj, officialGameIds):
         url = self.price_url % officialGameIds
-        resp = requests.get(url, headers=self.headers)
+        resp = requests.get(url, headers=self.headers, allow_redirects=False)
         json_data = json.loads(resp.text, encoding="UTF-8")
         if "prices" in json_data:
             price_data = json_data["prices"][0]
