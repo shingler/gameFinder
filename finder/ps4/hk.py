@@ -39,10 +39,18 @@ class PS4Hk(Store):
 
         resp = requests.get(url, headers=self.headers)
         data_list = json.loads(resp.text, encoding="UTF-8")
-        return data_list
+
+        # 去掉不是游戏的部分
+        result = []
+        for data in data_list["included"]:
+            # 游戏资料
+            if data["type"] == "game":
+                result.append(data)
+
+        return result
 
     # 保存一个数据入库
-    def storeData(self, data):
+    def saveData(self, data):
         # 查找游戏资料是否存在
         game = ps4game.getFinder("ps4", self.saleArea)
         # officialGameId = data["id"][0:data["id"].rfind("-")]
@@ -110,14 +118,3 @@ class PS4Hk(Store):
 
             game.save()
             return game.id
-
-    # 爬虫入口
-    def getData(self, size=1, page=1):
-        data_list = self.getPageData(size, page)
-
-        for data in data_list["included"]:
-            # 游戏资料
-            if data["type"] == "game":
-                # 保存入库
-                self.storeData(data)
-                # exit(1)

@@ -13,7 +13,7 @@ class Playstation4GameTestCase(unittest.TestCase):
         print("ps4港服游戏爬虫测试用例")
         globals()["list_url"] = ""
         globals()["sale_area"] = ""
-        globals()["data_list"] = {}
+        globals()["data_list"] = []
         globals()["saved_id"] = 0
 
     # 获取港服列表url模板
@@ -40,25 +40,21 @@ class Playstation4GameTestCase(unittest.TestCase):
         print("3：测试第一页数据能否获取")
         ps4Game = ps4.getFinder("hk")
         size = 30
-        page1_list = ps4Game.getPageData(size=size, page=1)
-        data_list = []
-        for data in page1_list["included"]:
-            # 游戏资料
-            if data["type"] == "game":
-                data_list.append(data)
+        data_list = ps4Game.getPageData(size=size, page=1)
         self.assertNotEqual(0, len(data_list), "游戏列表第一页数据总数为0")
         globals()["data_list"] = data_list
 
     # 测试第一页随机一个游戏能否保存入库
     def test_4_one_game_can_scrape(self):
         print("4：测试第一页随机一个游戏能否保存入库")
+        print(globals()["data_list"])
         data_list = globals()["data_list"]
         one = random.choice(data_list)
         # 给官方id前加前缀fake防止重复写入
         one["id"] = "fake_" + one["id"]
         print("随机写入的游戏官方ID是%s，名字是%s" % (one["id"], one["attributes"]["name"].replace("'", "\\\'")))
         ps4Game = ps4.getFinder("hk")
-        price_id = ps4Game.storeData(one)
+        price_id = ps4Game.saveData(one)
         self.assertNotEqual(0, price_id, "写入失败")
         print("写入的数据id=%s" % price_id)
         globals()["saved_id"] = price_id

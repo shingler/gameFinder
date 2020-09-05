@@ -9,84 +9,94 @@ import requests
 from bs4 import BeautifulSoup
 
 from finder import nsgame
+from finder.base import Platform
 from finder.store import Store
 
 
 class SwitchHk(Store):
     def __init__(self):
         super(SwitchHk, self).__init__()
+        platform_obj = Platform()
+        platform_data = platform_obj.get(platform="switch", area="HK")
+
+        self.list_url = platform_data["url"]
         self.currency = "HKD"
-        self.saleArea = "HK"
+        self.saleArea = platform_data["countryArea"]
         self.url = "https://www.nintendo.com.hk%s"
-        self.count_url = "https://www.nintendo.com.hk/data/json/switch_software.json?418544271551"
+        self.count_url = self.list_url
 
     def getCount(self):
         # 就一页，还分什么页
         return 999999
-        # super(SwitchHk, self).getCount()
-        # # 总数
-        # total = len(data_list)
-        # return total
 
-    def getData(self, size=999, page=1):
-        url = "https://www.nintendo.com.hk/data/json/switch_software.json?418544271551"
-        # url = url.format(size, page)
-        # print(url)
+    def getPageData(self, size, page):
+        # 港服就一个大json，暂时用不到size和page
+        url = self.list_url
+
         resp = requests.get(url, headers=self.headers, allow_redirects=False)
         data_list = json.loads(resp.text, encoding="UTF-8")
+        result = []
 
+        # 只抓取eshop数据
         for data in data_list:
-            # 游戏资料
-            # id没有直接给出，而是在url里
-            officialGameId = data["link"][str.rfind(data["link"], "/")+1:]
-            print(officialGameId)
-
-            # 只抓取eshop数据
             if data["media"] != "eshop":
                 continue
-            # link不带域名的是硬件，也跳过
+                # link不带域名的是硬件，也跳过
             if not data["link"].startswith("http"):
                 continue
+            result.append(data)
 
-            # 游戏价格
-            price_obj = nsgame.getFinder(platform="switch", area=str.lower(self.saleArea))
-            price_obj.officialGameId = officialGameId
-            price_obj.subject = data["title"].replace("'", "\\\'")
-            price_obj.intro = ""
-            price_obj.cover = "https://www.nintendo.com.hk/software/img/bnr/%s" % data["thumb_img"]
-            price_obj.video = ""
-            price_obj.publishDate = int(time.mktime(time.strptime(data["release_date"], "%Y.%m.%d")))
-            price_obj.publishDateStr = data["release_date"]
-            price_obj.players = 1
-            price_obj.platform = "switch"
-            # price_obj.edition = ""
-            price_obj.edition = data["lang"]
-            price_obj.price = data["price"]
-            price_obj.url = data["link"]
-            # price_obj.latestPrice = data["current_price"]
-            # price_obj.plusPrice = data["current_price"]
-            # price_obj.rate = "CERO : %s" % data["cero"][0] if data["cero"] else ""
+        return data_list
 
-            # latestExpire = data["sale_until"] if "sale_until" in data else None
-            # if latestExpire is None:
-            #     price_obj.latestExpire = 0
-            # else:
-            #     price_obj.latestExpire = int(time.mktime(time.strptime(latestExpire, "%Y-%m-%d %H:%M:%S")))
-            # print(price.latestExpire)
-            price_obj.plusExpire = 0
+    def saveData(self, data, for_test=False):
+        # 游戏资料
+        # id没有直接给出，而是在url里
+        officialGameId = data["link"][str.rfind(data["link"], "/") + 1:]
+        print(officialGameId)
+        if for_test:
+            officialGameId = "fake_" + officialGameId
 
-            price_obj.historyPrice = price_obj.latestPrice
-            # price_obj.hisDate = time.strftime("%Y-%m-%d")
-            price_obj.hisDate = int(time.time())
-            price_obj.created = int(time.time())
-            price_obj.updated = int(time.time())
-            self.getDetail(price_obj, data["link"])
+        # 游戏价格
+        price_obj = nsgame.getFinder(platform="switch", area=str.lower(self.saleArea))
+        price_obj.officialGameId = officialGameId
+        price_obj.subject = data["title"].replace("'", "\\\'")
+        price_obj.intro = ""
+        price_obj.cover = "https://www.nintendo.com.hk/software/img/bnr/%s" % data["thumb_img"]
+        price_obj.video = ""
+        price_obj.publishDate = int(time.mktime(time.strptime(data["release_date"], "%Y.%m.%d")))
+        price_obj.publishDateStr = data["release_date"]
+        price_obj.players = 1
+        price_obj.platform = "switch"
+        # price_obj.edition = ""
+        price_obj.edition = data["lang"]
+        price_obj.price = data["price"]
+        price_obj.url = data["link"]
+        # price_obj.latestPrice = data["current_price"]
+        # price_obj.plusPrice = data["current_price"]
+        # price_obj.rate = "CERO : %s" % data["cero"][0] if data["cero"] else ""
 
-            price_obj.save()
-            print("%s saved." % price_obj.subject)
-            # break
+        # latestExpire = data["sale_until"] if "sale_until" in data else None
+        # if latestExpire is None:
+        #     price_obj.latestExpire = 0
+        # else:
+        #     price_obj.latestExpire = int(time.mktime(time.strptime(latestExpire, "%Y-%m-%d %H:%M:%S")))
+        # print(price.latestExpire)
+        price_obj.plusExpire = 0
+
+        price_obj.historyPrice = price_obj.latestPrice
+        # price_obj.hisDate = time.strftime("%Y-%m-%d")
+        price_obj.hisDate = int(time.time())
+        price_obj.created = int(time.time())
+        price_obj.updated = int(time.time())
+        self.getDetail(price_obj, data["link"])
+
+        print("%s saved." % price_obj.subject)
+        return price_obj.save()
 
     def getDetail(self, price_obj, url):
+        url = str(url)
+        if not url.startswith("http"):
+            url = self.url % url
         print(url)
         resp = requests.get(url, headers=self.headers, allow_redirects=False)
         soup = BeautifulSoup(resp.text, "html.parser")

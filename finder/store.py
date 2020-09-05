@@ -37,9 +37,22 @@ class Store(metaclass=ABCMeta):
         json_data = json.loads(count_data, encoding="UTF-8")
         return json_data
 
+    # 解析一个页面的数据
     @abstractmethod
-    def getData(self, size=1, page=1):
+    def getPageData(self, size=1, page=1):
         pass
+
+    # 保存单条数据
+    @abstractmethod
+    def saveData(self, data):
+        pass
+
+    # 获取数据并保存
+    def getData(self, size=1, page=1):
+        data_list = self.getPageData(size, page)
+
+        for data in data_list:
+            self.saveData(data)
 
     # 获取总页数
     def getPage(self, size):
