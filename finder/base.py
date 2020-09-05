@@ -4,75 +4,25 @@ import time
 from db import Db
 
 
-class Games(Db):
-    # 游戏ID
-    gameId = 0
-    # 官方游戏ID
-    officialGameId = ""
-    # 中文名
-    titleCh = ""
-    # 英文名
-    titleEn = ""
-    # 日文名
-    titleJp = ""
-    # 介绍
-    intro = ""
-    # 封图
-    cover = ""
-    # 宣传片
-    video = ""
-    # 评分
-    score = 0.0
-    # 语言
-    language = ""
-    # 有无中文
-    hasChinese = 0
-    # 系列ID
-    serialId = 0
-    # 关键词
-    keyword = ""
-    # 游玩人数
-    players = 1
-    # 游戏平台
-    platform = "PS4"
-    # 是否有联机
-    online = 0
-    # 游戏分级
-    rate = ""
+class Platform(Db):
+    def __init__(self):
+        self.id = 0
+        self.platform = ""
+        self.countryArea = ""
+        self.countryAreaName = ""
+        self.url = ""
+        self.created = 0
+        super(Platform, self).__init__()
 
-    def save(self):
-        # 先查找是否存在
-        sql_find = """SELECT * FROM game_finder.games
-        WHERE officialGameId='%s'""" % self.officialGameId
-        count = self.rowCount(sql_find)
-        if count > 0:
-            super().close()
-            return False
-
-        sql = """insert into game_finder.games (officialGameId, titleCh, titleEn, titleJp, 
-        intro, cover, video, published, `language`, hasChinese, platform, players, online) \
-            values ('%s', '%s', '%s', '%s', 
-            '%s', '%s', '%s', %d, '%s', %d, '%s', '%s', %d)""" \
-              % (self.officialGameId, self.titleCh, self.titleEn, self.titleJp, self.intro, self.cover,
-                 self.video, self.published, self.language, self.hasChinese, self.platform, self.players, self.online)
-        # print(sql)
-
-        self.gameId = super().write(sql)
-        super().close()
-        return True
-
-    def findByOfficialGameId(self, officialGameId):
-        sql_find = "SELECT * FROM game_finder.games WHERE officialGameId='%s'" % officialGameId
-        data = super().find(sql_find)
-        return data
-
-
-class Platform:
-    pass
+    def get(self, platform, area, *args, **kwargs):
+        sql = "SELECT * FROM game_finder.platforms WHERE platform='%s' AND countryArea='%s' ORDER BY platform" \
+            % (platform, area)
+        return super(Platform, self).find(sql)
 
 
 class Price(Db):
     def __init__(self):
+        self.id = 0
         self.officialGameId = 0
         self.subject = ""
         self.intro = ""
@@ -101,6 +51,12 @@ class Price(Db):
 
     def getDataByOfficeGameId(self, officialGameId):
         sql_find = "SELECT * FROM game_finder.subjects WHERE officialGameId='%s'" % officialGameId
+        # print(sql_find)
+        data = super().find(sql_find)
+        return data
+
+    def getDataById(self, id):
+        sql_find = "SELECT * FROM game_finder.subjects WHERE id='%s'" % id
         # print(sql_find)
         data = super().find(sql_find)
         return data
@@ -151,6 +107,12 @@ class Price(Db):
                 int(self.plusExpire), self.historyPrice, self.hisDate, self.created, self.updated
             )
 
-            super().write(sql_insert)
+            self.id = super().write(sql_insert)
 
         super().close()
+        return self.id
+
+    def delete(self, id):
+        sql_delete = "DELETE FROM game_finder.subjects WHERE id='%s'" % id
+        data = super().write(sql_delete)
+        return True

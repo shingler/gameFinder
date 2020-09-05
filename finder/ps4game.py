@@ -1,17 +1,9 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-from finder.base import Games, Price
-
-
-class PS4HkGame(Games):
-
-    def __init__(self):
-        super(PS4HkGame, self).__init__()
-        self.platform = "ps4"
+from finder.base import Price
 
 
 class PS4HkPrice(Price):
-
     def __init__(self):
         super(PS4HkPrice, self).__init__()
         self.currency = "HKD"
