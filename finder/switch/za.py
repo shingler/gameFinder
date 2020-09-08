@@ -16,84 +16,82 @@ from finder.store import Store
 
 
 class SwitchZa(Store):
+    saleArea = 'ZA'
+    currency = 'ZAR'
+    url = 'https://www.nintendo.co.za%s'
+    price_url = 'https://api.ec.nintendo.com/v1/price?country=ZA&lang=en&ids=%s'
 
-    def __init__(self):
-        super(SwitchZa, self).__init__()
-        self.saleArea = 'ZA'
-        self.currency = 'ZAR'
-        self.url = 'https://www.nintendo.co.za%s'
-        self.count_url = 'https://searching.nintendo-europe.com/za/select?q=*&fq=type:GAME AND ((playable_on_txt:"HAC")) AND sorting_title:* AND *:*&sort=score desc, date_from desc&start=0&rows=1&wt=json&bf=linear(ms(priority,NOW/HOUR),1.1e-11,0)&bq=deprioritise_b:true^-1000&json.wrf=nindo.net.jsonp.jsonpCallback_781841_9399999548'
-        self.search_url = 'https://searching.nintendo-europe.com/za/select?q=*&fq=type:GAME AND ((playable_on_txt:"HAC")) AND sorting_title:* AND *:*&sort=score desc, date_from desc&start={0}&rows={1}&wt=json&bf=linear(ms(priority,NOW/HOUR),1.1e-11,0)&bq=deprioritise_b:true^-1000&json.wrf=nindo.net.jsonp.jsonpCallback_781841_9399999548'
-        self.price_url = 'https://api.ec.nintendo.com/v1/price?country=ZA&lang=en&ids=%s'
-
-    def getCount(self):
+    def getCount(self, method="get", data=None, format="json"):
+        self.count_url = self.list_url.format(0, 1)
         json_data = super(SwitchZa, self).getCount(format="jsonp")
         total = json_data["response"]["numFound"]
         return total
 
-    def getData(self, size=1, page=1):
-        print(size, page)
-        offset = (page-1)*size
-        url = self.search_url.format(offset, size)
+    def getPageData(self, size=1, page=1) -> list:
+        offset = (page - 1) * size
+        url = self.list_url.format(offset, size)
 
         resp = requests.get(url, headers=self.headers, allow_redirects=False)
         # 南非服从欧服拿东西，格式是jsonp
-        resp_text = resp.text[resp.text.find("(")+1:resp.text.rfind(")")]
+        resp_text = resp.text[resp.text.find("(") + 1:resp.text.rfind(")")]
         json_data = json.loads(resp_text, encoding="UTF-8")
         data_list = json_data["response"]["docs"]
+        return data_list
 
-        for data in data_list:
-            if "nsuid_txt" not in data:
-                continue
+    def saveData(self, data, for_test=False) -> int:
+        if "nsuid_txt" not in data:
+            return 0
 
-            officialGameId = data["nsuid_txt"][0]
-            price_obj = nsgame.getFinder("switch", str.lower(self.saleArea))
+        officialGameId = data["nsuid_txt"][0]
+        if for_test:
+            officialGameId = "fake_" + officialGameId
 
-            # 是否存在。如果存在就不爬详情页了，节约时间
-            exist = price_obj.getDataByOfficeGameId(officialGameId)
+        price_obj = nsgame.getFinder("switch", str.lower(self.saleArea))
 
-            price_obj.officialGameId = officialGameId
-            price_obj.subject = data["title"].replace("'", "\\\'")
-            price_obj.intro = data["excerpt"].replace("'", "\\\'")
-            price_obj.cover = "https:%s" % data["image_url"] if "image_url" in data else ""
-            price_obj.video = ""
-            # 未发售游戏的发售日无法转换
-            price_obj.publishDateStr = data["dates_released_dts"][0]
-            # print(price_obj.publishDateStr)
-            if "T" in price_obj.publishDateStr:
-                date_str = price_obj.publishDateStr[:price_obj.publishDateStr.rfind("T")]
-                price_obj.publishDateStr = date_str
-                try:
-                    price_obj.publishDate = int(time.mktime(time.strptime(date_str, "%Y-%m-%d")))
-                except:
-                    pass
-            if "players_from" in data:
-                price_obj.players = "%s - %s" % (data["players_from"], data["players_to"])
-            else:
-                price_obj.players = data["players_to"]
-            price_obj.platform = "switch"
-            price_obj.edition = data["language_availability"][0]
-            # 没有发售日期的游戏没有价格
-            price_obj.price = data["price_regular_f"] if ("price_regular_f" in data) else -1
+        # 是否存在。如果存在就不爬详情页了，节约时间
+        exist = price_obj.getDataByOfficeGameId(officialGameId)
 
-            price_obj.url = self.url % data["url"]
-            price_obj.rate = "%s : %s" % (data["age_rating_type"], data["age_rating_value"])
+        price_obj.officialGameId = officialGameId
+        price_obj.subject = data["title"].replace("'", "\\\'")
+        price_obj.intro = data["excerpt"].replace("'", "\\\'")
+        price_obj.cover = "https:%s" % data["image_url"] if "image_url" in data else ""
+        price_obj.video = ""
+        # 未发售游戏的发售日无法转换
+        price_obj.publishDateStr = data["dates_released_dts"][0]
+        # print(price_obj.publishDateStr)
+        if "T" in price_obj.publishDateStr:
+            date_str = price_obj.publishDateStr[:price_obj.publishDateStr.rfind("T")]
+            price_obj.publishDateStr = date_str
+            try:
+                price_obj.publishDate = int(time.mktime(time.strptime(date_str, "%Y-%m-%d")))
+            except:
+                pass
+        if "players_from" in data:
+            price_obj.players = "%s - %s" % (data["players_from"], data["players_to"])
+        else:
+            price_obj.players = data["players_to"]
+        price_obj.platform = "switch"
+        price_obj.edition = data["language_availability"][0]
+        # 没有发售日期的游戏没有价格
+        price_obj.price = data["price_regular_f"] if ("price_regular_f" in data) else -1
 
-            # 获取价格
-            self.getSalePrice(price_obj, price_obj.officialGameId)
+        price_obj.url = self.url % data["url"]
+        price_obj.rate = "%s : %s" % (data["age_rating_type"], data["age_rating_value"])
 
-            # 获取截图
-            if not exist:
-                self.getDetail(price_obj, price_obj.url)
+        # 获取价格
+        self.getSalePrice(price_obj, price_obj.officialGameId)
 
-            price_obj.historyPrice = price_obj.latestPrice  # 保存的时候会检查
-            price_obj.hisDate = int(time.time())
-            price_obj.created = int(time.time())
-            price_obj.updated = int(time.time())
+        # 获取截图
+        if not exist:
+            self.getDetail(price_obj, price_obj.url)
 
-            price_obj.save()
-            print("%s saved." % price_obj.subject)
-            # exit(1)
+        price_obj.historyPrice = price_obj.latestPrice  # 保存的时候会检查
+        price_obj.hisDate = int(time.time())
+        price_obj.created = int(time.time())
+        price_obj.updated = int(time.time())
+
+        print("%s saved." % price_obj.subject)
+        return price_obj.save()
 
     # 获取折扣价
     def getSalePrice(self, price_obj, officialGameIds):

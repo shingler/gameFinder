@@ -14,22 +14,17 @@ from finder.store import Store
 
 
 class SwitchHk(Store):
-    def __init__(self):
-        super(SwitchHk, self).__init__()
-        platform_obj = Platform()
-        platform_data = platform_obj.get(platform="switch", area="HK")
+    currency = "HKD"
+    saleArea = "HK"
+    url = "https://www.nintendo.com.hk%s"
 
-        self.list_url = platform_data["url"]
-        self.currency = "HKD"
-        self.saleArea = platform_data["countryArea"]
-        self.url = "https://www.nintendo.com.hk%s"
-        self.count_url = self.list_url
-
-    def getCount(self):
+    def getCount(self, method="get", data=None, format="json"):
         # 就一页，还分什么页
+        if data is None:
+            data = {}
         return 999999
 
-    def getPageData(self, size, page):
+    def getPageData(self, size=1, page=1) -> list:
         # 港服就一个大json，暂时用不到size和page
         url = self.list_url
 
@@ -46,9 +41,9 @@ class SwitchHk(Store):
                 continue
             result.append(data)
 
-        return data_list
+        return result
 
-    def saveData(self, data, for_test=False):
+    def saveData(self, data, for_test=False) -> int:
         # 游戏资料
         # id没有直接给出，而是在url里
         officialGameId = data["link"][str.rfind(data["link"], "/") + 1:]

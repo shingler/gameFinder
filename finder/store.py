@@ -7,20 +7,30 @@ from abc import ABCMeta, abstractmethod
 
 import requests
 
+from finder.base import Platform
+
 
 class Store(metaclass=ABCMeta):
+    currency = ""
+    saleArea = ""
+    url = ""
+    count_url = ""
+    headers = {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
+    }
+    list_url = ""
+
     def __init__(self):
-        self.currency = ""
-        self.saleArea = ""
-        self.url = ""
-        self.count_url = ""
-        self.headers = {
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
-        }
+        platform_obj = Platform()
+        platform_data = platform_obj.get(platform="switch", area=self.saleArea.upper())
+        self.list_url = platform_data["url"]
+        self.count_url = self.list_url
 
     # 获取游戏总数
     @abstractmethod
-    def getCount(self, method="get", data={}, format="json"):
+    def getCount(self, method="get", data=None, format="json"):
+        if data is None:
+            data = {}
         if len(self.url) == 0:
             raise CountUrlEmptyError
         if method == "get":
@@ -39,12 +49,17 @@ class Store(metaclass=ABCMeta):
 
     # 解析一个页面的数据
     @abstractmethod
-    def getPageData(self, size=1, page=1):
+    def getPageData(self, size=1, page=1) -> list:
         pass
 
     # 保存单条数据
     @abstractmethod
-    def saveData(self, data):
+    def saveData(self, data, for_test=False) -> int:
+        pass
+
+    # 从另一个详情页获取更多细节
+    @abstractmethod
+    def getDetail(self, price_obj, url) -> None:
         pass
 
     # 获取数据并保存
