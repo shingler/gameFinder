@@ -51,7 +51,7 @@ class SwitchZa(Store):
         # 是否存在。如果存在就不爬详情页了，节约时间
         exist = price_obj.getDataByOfficeGameId(officialGameId)
 
-        price_obj.officialGameId = officialGameId
+        price_obj.officialGameId = "fake_" + officialGameId if for_test else officialGameId
         price_obj.subject = data["title"].replace("'", "\\\'")
         price_obj.intro = data["excerpt"].replace("'", "\\\'")
         price_obj.cover = "https:%s" % data["image_url"] if "image_url" in data else ""
@@ -79,7 +79,7 @@ class SwitchZa(Store):
         price_obj.rate = "%s : %s" % (data["age_rating_type"], data["age_rating_value"])
 
         # 获取价格
-        self.getSalePrice(price_obj, price_obj.officialGameId)
+        self.getSalePrice(price_obj, officialGameId)
 
         # 获取截图
         if not exist:

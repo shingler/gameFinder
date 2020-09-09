@@ -48,12 +48,10 @@ class SwitchHk(Store):
         # id没有直接给出，而是在url里
         officialGameId = data["link"][str.rfind(data["link"], "/") + 1:]
         print(officialGameId)
-        if for_test:
-            officialGameId = "fake_" + officialGameId
 
         # 游戏价格
         price_obj = nsgame.getFinder(platform="switch", area=str.lower(self.saleArea))
-        price_obj.officialGameId = officialGameId
+        price_obj.officialGameId = "fake_" + officialGameId if for_test else officialGameId
         price_obj.subject = data["title"].replace("'", "\\\'")
         price_obj.intro = ""
         price_obj.cover = "https://www.nintendo.com.hk/software/img/bnr/%s" % data["thumb_img"]

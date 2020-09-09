@@ -30,12 +30,10 @@ class SwitchJp(Store):
     def saveData(self, data, for_test=False) -> int:
         # 游戏资料
         officialGameId = data["id"]
-        if for_test:
-            officialGameId = "fake_" + officialGameId
 
         # 游戏价格
         price_obj = nsgame.getFinder(platform="switch", area=str.lower(self.saleArea))
-        price_obj.officialGameId = officialGameId
+        price_obj.officialGameId = "fake_" + officialGameId if for_test else officialGameId
         price_obj.subject = data["title"].replace("'", "\\\'")
         price_obj.intro = data["text"].replace("'", "\\\'")
         price_obj.cover = "https://img-eshop.cdn.nintendo.net/i/%s.jpg" % data["iurl"]
